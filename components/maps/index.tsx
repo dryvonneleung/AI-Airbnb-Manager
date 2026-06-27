@@ -2,6 +2,8 @@
 
 import dynamic from 'next/dynamic';
 
+export type { MapCleaner } from './SearchMap';
+
 // Leaflet only runs in the browser, so all map components are imported with
 // SSR disabled. Pages/components import these wrappers, never the raw modules.
 
