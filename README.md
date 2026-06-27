@@ -40,14 +40,29 @@ ADMIN_EMAIL=admin@cleanrus.com
 
 ### Database setup
 
-1. Create a Supabase project.
-2. Open the SQL editor and run [`supabase/schema.sql`](./supabase/schema.sql).
-   This creates all tables, Row Level Security policies, the `cleaning-proofs`
-   and `avatars` storage buckets, and a trigger that creates a profile row on
-   signup.
-3. Enable the `pg_cron` and `pg_net` extensions, then uncomment and configure
-   the `cron.schedule(...)` block at the bottom of the schema to call the
-   auto-release Edge Function hourly.
+You can apply the schema two ways:
+
+**A. GitHub integration (automatic).** In the Supabase dashboard, connect this
+repository (Project → Integrations → GitHub). The integration reads
+[`supabase/migrations/`](./supabase/migrations) and applies
+[`20260627120000_init.sql`](./supabase/migrations/20260627120000_init.sql) to
+your project on push to the production branch (and creates preview branches for
+PRs). `supabase/config.toml` configures the connection — update `site_url` to
+your deployed URL.
+
+**B. Manual.** Open the SQL editor and run
+[`supabase/schema.sql`](./supabase/schema.sql) (identical to the migration).
+
+Either way this creates all tables, RLS policies, the `cleaning-proofs` and
+`avatars` storage buckets, the profile-on-signup trigger, and the
+`increment_total_jobs` helper.
+
+Then enable the `pg_cron` and `pg_net` extensions and configure the
+`cron.schedule(...)` block (in `schema.sql`) to call the auto-release Edge
+Function hourly.
+
+> If a storage/auth statement is rejected for permissions during an automated
+> migration, run those few lines once in the SQL editor — the rest still apply.
 
 ### Stripe setup
 

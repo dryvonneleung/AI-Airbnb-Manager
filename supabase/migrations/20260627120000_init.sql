@@ -1,8 +1,9 @@
 -- ============================================================================
--- Cleanrus database schema
--- Run this in the Supabase SQL editor (or via `supabase db push`).
--- Includes tables, Row Level Security policies, the cleaning-proofs storage
--- bucket, and the pg_cron job that auto-releases escrowed funds.
+-- Cleanrus initial schema migration.
+--
+-- This is the canonical schema applied by the Supabase GitHub integration
+-- (and `supabase db push`). It mirrors supabase/schema.sql, which is kept for
+-- the manual "paste into the SQL editor" path. Keep the two in sync.
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -118,7 +119,6 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_r
 
 -- ---------------------------------------------------------------------------
 -- Auto-create a profile row when a new auth user signs up.
--- The signup API also upserts profile data, but this guarantees a row exists.
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -221,7 +221,7 @@ CREATE POLICY "notifications_owner_update" ON notifications
   FOR UPDATE USING (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
--- Storage bucket for cleaning proof photos (public read)
+-- Storage buckets (public read) + policies
 -- ---------------------------------------------------------------------------
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('cleaning-proofs', 'cleaning-proofs', true)
@@ -236,7 +236,6 @@ CREATE POLICY "proofs_auth_upload" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'cleaning-proofs');
 
--- Avatars bucket
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('avatars', 'avatars', true)
 ON CONFLICT (id) DO NOTHING;
@@ -251,21 +250,7 @@ CREATE POLICY "avatars_auth_upload" ON storage.objects
   WITH CHECK (bucket_id = 'avatars');
 
 -- ---------------------------------------------------------------------------
--- pg_cron: invoke the auto-release Edge Function every hour.
--- Requires the pg_cron and pg_net extensions (enable in Supabase dashboard).
--- Replace <PROJECT_REF> and the service role key before running, or schedule
--- the function from the dashboard instead.
+-- pg_cron auto-release (configure in the dashboard; needs project ref + key).
+-- Left commented so the migration applies cleanly without secrets in git.
+-- See supabase/schema.sql for the cron.schedule(...) snippet.
 -- ---------------------------------------------------------------------------
--- CREATE EXTENSION IF NOT EXISTS pg_cron;
--- CREATE EXTENSION IF NOT EXISTS pg_net;
---
--- SELECT cron.schedule(
---   'auto-release-funds',
---   '0 * * * *',
---   $$
---   SELECT net.http_post(
---     url := 'https://<PROJECT_REF>.functions.supabase.co/auto-release',
---     headers := '{"Authorization": "Bearer <SERVICE_ROLE_KEY>", "Content-Type": "application/json"}'::jsonb
---   );
---   $$
--- );

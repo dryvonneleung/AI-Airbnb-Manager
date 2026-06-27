@@ -1,0 +1,24 @@
+# Supabase project config. The `project_id` is a local identifier; the GitHub
+# integration links the actual project you connected in the dashboard.
+project_id = "cleanrus"
+
+[db]
+# Postgres major version used by your Supabase project.
+major_version = 15
+
+[db.migrations]
+# Directory the GitHub integration / `supabase db push` reads migrations from.
+schema_paths = []
+
+[storage]
+enabled = true
+
+[auth]
+enabled = true
+# Update to your deployed URL (e.g. https://your-app.vercel.app) in production.
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+
+[functions.auto-release]
+# Cron-invoked; no end-user JWT.
+verify_jwt = false
